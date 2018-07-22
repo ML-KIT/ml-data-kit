@@ -6,6 +6,7 @@ setup(name='mldatakit',
     url='https://github.com/ml-data-kit/ml-data-kit',
     packages=find_packages(),
     license='Apache',
+    scripts=['bin/data-kit-flowers102-h5'],
     keywords='Machine Learning, Data, Data Conversion, Data Processing',
     classifiers=[
         'Development Status :: Alpha',

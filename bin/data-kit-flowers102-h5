@@ -1,0 +1,7 @@
+#!/usr/bin/env python
+'''
+Invoke the script to call converter
+'''
+
+from ml_data_kit.datasets import flowers102
+flowers102.get_data()
