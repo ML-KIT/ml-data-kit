@@ -153,6 +153,7 @@ def h5_creator (filename, images, image_names, labels, wnids, label_names ):
         wnids: A numpy array of the wnids
         label_names: A numpy array of the label names
     """
+    print ('Creating {} ... '.format(filename), end='', flush=True)
     with h5py.File(filename, 'w') as hf:
         hf.create_dataset('x', compression="gzip", data=images)
         hf.create_dataset('y', compression="gzip", data=labels)
