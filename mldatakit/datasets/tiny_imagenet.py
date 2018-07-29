@@ -15,6 +15,10 @@ except ImportError:
     from urllib import urlretrieve
 
 def reporthook(count, block_size, total_size):
+    """Taken from https://blog.shichao.io/2012/10/04/progress_speed_indicator_for_urlretrieve_in_python.html
+    A simple reporthook() function for urllib.urlretrieve()‘s reporthook argument that shows a progressbar
+    while downloading the data
+    """
     global start_time
     if count == 0:
         start_time = time.time()
@@ -28,6 +32,8 @@ def reporthook(count, block_size, total_size):
     sys.stdout.flush()
 
 def download_data():
+    """Downloads and Extracts tiny-imagenet Dataset
+    """
     if not os.path.exists(os.path.join(os.getcwd(), "tiny-imagenet-200")):
         if not os.path.exists(os.path.join(os.getcwd(), "tiny-imagenet-200.zip")):
             print ('Downloading Flowers data from  http://cs231n.stanford.edu/tiny-imagenet-200.zip ...')
@@ -40,6 +46,10 @@ def download_data():
 
 
 def get_word_labels():
+    """Get the wnids and label names from the words.txt file.
+    # Returns
+        A dictionary where keys are the wnids and values are the label names
+    """
     file = open ('tiny-imagenet-200/words.txt', 'r')
     word_labels = {}
     for f in file:
@@ -50,7 +60,11 @@ def get_word_labels():
     file.close()
     return word_labels
 
-def get_train_wnid_labes():
+def get_train_wnid():
+    """Extracts the wnids from the subdirectories for every image in the train folder
+    # Returns
+        A dictionary where keys are the image names and values are the wnids
+    """
     wnid_labels = {}
     for subdir, dirs, files in os.walk('tiny-imagenet-200/train'):
         for filename in files:
@@ -62,7 +76,11 @@ def get_train_wnid_labes():
                 file.close()
     return wnid_labels
 
-def get_val_wnid_labes():
+def get_val_wnid():
+    """Extracts the wnids from the val_annotations.txt file for every image in the val folder
+    # Returns
+        A dictionary where keys are the image names and values are the wnids
+    """
     file = open('tiny-imagenet-200/val/val_annotations.txt', 'r')
     wnid_labels = {}
     for f in file:
@@ -72,15 +90,31 @@ def get_val_wnid_labes():
     return wnid_labels
 
 def load_labels():
-    train_wnid_labels = get_train_wnid_labes()
-    val_wnid_labels = get_val_wnid_labes() 
-    categorical_labels = list(set(list(train_wnid_labels.values()) + list(val_wnid_labels.values())))
-    return train_wnid_labels, val_wnid_labels, categorical_labels
+    """Gets wnids for every image and convert them to categorical
+    # Returns
+        train_wnid: A dictionary where keys are the training image names and values are the wnids
+        val_wnid: A dictionary where keys are the validation image names and values are the wnids
+        uniq_wnids: A list of all the wnids
+    """
+    train_wnid = get_train_wnid()
+    val_wnid = get_val_wnid() 
+    uniq_wnids = list(set(list(train_wnid.values()) + list(val_wnid.values())))
+    return train_wnid, val_wnid, uniq_wnids
 
-def load_images (folder, wnid_labels, categorical_labels):
+def load_images (folder, wnid_labels, uniq_wnids):
+    """loads the images from a given folder
+    # Arguments
+        folder: directory where the images are stored
+        wnid_labels: A dictionary where keys are the validation image names and values are the wnids
+        uniq_wnids: A list of all the wnids
+    # Returns
+        images: A numpy array of the images
+        image_names: A numpy array of the image names
+        labels: A numpy array of the labels
+        wnids: A numpy array of the wnids
+        label_names: A numpy array of the label names
+    """
     word_labels = get_word_labels()
-    # if train_val == 'train': wnid_labels = get_train_wnid_labes()
-    # elif train_val == 'val': wnid_labels = get_val_wnid_labes()
     images = []
     labels = []
     wnids = []
@@ -95,7 +129,7 @@ def load_images (folder, wnid_labels, categorical_labels):
                     np_img = np.dstack([np_img]*3)
                 images.append(np_img)
                 filename = filename.split("/")[-1]
-                labels.append(categorical_labels.index(wnid_labels[filename]))
+                labels.append(uniq_wnids.index(wnid_labels[filename]))
                 image_names.append(np.string_(filename))
                 wnids.append(np.string_(wnid_labels [filename]))
                 label_names.append(np.string_(word_labels [wnid_labels[filename]]))
@@ -110,6 +144,15 @@ def load_images (folder, wnid_labels, categorical_labels):
     return images, image_names, labels, wnids, label_names
 
 def h5_creator (filename, images, image_names, labels, wnids, label_names ):
+    """Creates a H5 file and datasets with all the arguments.
+    # Arguments
+        filename: name of the h5 file 
+        images: A numpy array of the images
+        image_names: A numpy array of the image names
+        labels: A numpy array of the labels
+        wnids: A numpy array of the wnids
+        label_names: A numpy array of the label names
+    """
     with h5py.File(filename, 'w') as hf:
         hf.create_dataset('x', compression="gzip", data=images)
         hf.create_dataset('y', compression="gzip", data=labels)
@@ -118,15 +161,27 @@ def h5_creator (filename, images, image_names, labels, wnids, label_names ):
         hf.create_dataset('wnids', compression="gzip", data=wnids)
     hf.close()
 
-def get_data(): 
+def load_data(expanded=False):
+    """Downloads the data loads all the images and the labels
+    # Returns
+        Tuple of Numpy arrays
+        if expanded is true: (x_train, y_train), (x_val, y_val)
+        if expanded is false: (x_train, y_train, train_image_names, train_wnids, train_label_names),
+                (x_val, y_val, val_image_names, val_wnids, val_label_names)
+    """ 
     download_data()
-    train_wnid_labels, val_wnid_labels, categorical_labels = load_labels()
+    train_wnid_labels, val_wnid_labels, uniq_wnids = load_labels()
 
-    val_images, val_image_names, val_labels, val_wnids, val_label_names = load_images ('tiny-imagenet-200/val', val_wnid_labels, categorical_labels)
-    train_images, train_image_names, train_labels, train_wnids, train_label_names = load_images ('tiny-imagenet-200/train', train_wnid_labels, categorical_labels)
-    
-    h5_creator ('val.h5', val_images, val_image_names, val_labels, val_wnids, val_label_names)
-    h5_creator ('train.h5', train_images, train_image_names, train_labels, train_wnids, train_label_names)
+    x_val, val_image_names, y_val, val_wnids, val_label_names = load_images ('tiny-imagenet-200/val', val_wnid_labels, uniq_wnids)
+    x_train, train_image_names, y_train, train_wnids, train_label_names = load_images ('tiny-imagenet-200/train', train_wnid_labels, uniq_wnids)
+    if expanded == False:
+        return (x_train, y_train), (x_val, y_val)
+    else:
+        return (x_train, y_train, train_image_names, train_wnids, train_label_names), \
+            (x_val, y_val, val_image_names, val_wnids, val_label_names)
 
 if __name__ == '__main__':
-    get_data()
+    (x_train, y_train, train_image_names, train_wnids, train_label_names), \
+            (x_val, y_val, val_image_names, val_wnids, val_label_names) = load_data(expanded=True)  
+    h5_creator ('val.h5', val_images, val_image_names, val_labels, val_wnids, val_label_names)
+    h5_creator ('train.h5', train_images, train_image_names, train_labels, train_wnids, train_label_names)
