@@ -101,7 +101,7 @@ def load_labels():
     uniq_wnids = list(set(list(train_wnid.values()) + list(val_wnid.values())))
     return train_wnid, val_wnid, uniq_wnids
 
-def load_images (folder, wnid_labels, uniq_wnids):
+def load_images (folder, wnid_labels, uniq_wnids, train_val):
     """loads the images from a given folder
     # Arguments
         folder: directory where the images are stored
@@ -114,6 +114,7 @@ def load_images (folder, wnid_labels, uniq_wnids):
         wnids: A numpy array of the wnids
         label_names: A numpy array of the label names
     """
+    print ('Loading {} images ... '.format(train_val), end='', flush=True)
     word_labels = get_word_labels()
     images = []
     labels = []
@@ -134,13 +135,14 @@ def load_images (folder, wnid_labels, uniq_wnids):
                 wnids.append(np.string_(wnid_labels [filename]))
                 label_names.append(np.string_(word_labels [wnid_labels[filename]]))
                 img.close()
-                if (len(images)%5000) is 0: print ('{} imges processed'.format(len(images)))
+                # if (len(images)%5000) is 0: print ('{} imges processed'.format(len(images)))
     images = np.array(images)
     labels = np.array(labels)
     wnids = np.array(wnids)
     image_names = np.array(image_names)
     label_names = np.array(label_names)
-    print ('Image processing finished')
+    # print ('Image processing finished')
+    print ('Done')
     return images, image_names, labels, wnids, label_names
 
 def h5_creator (filename, images, image_names, labels, wnids, label_names ):
@@ -161,25 +163,26 @@ def h5_creator (filename, images, image_names, labels, wnids, label_names ):
         hf.create_dataset('label_names', compression="gzip", data=label_names)
         hf.create_dataset('wnids', compression="gzip", data=wnids)
     hf.close()
+    print ('Done')
 
 def load_data(expanded=False):
     """Downloads the data loads all the images and the labels
     # Returns
         Tuple of Numpy arrays
-        if expanded is true: (x_train, y_train), (x_val, y_val)
         if expanded is false: (x_train, y_train, train_image_names, train_wnids, train_label_names),
                 (x_val, y_val, val_image_names, val_wnids, val_label_names)
+        if expanded is true: (x_train, y_train), (x_val, y_val)
     """ 
     download_data()
     train_wnid_labels, val_wnid_labels, uniq_wnids = load_labels()
 
-    x_val, val_image_names, y_val, val_wnids, val_label_names = load_images ('tiny-imagenet-200/val', val_wnid_labels, uniq_wnids)
-    x_train, train_image_names, y_train, train_wnids, train_label_names = load_images ('tiny-imagenet-200/train', train_wnid_labels, uniq_wnids)
+    x_val, val_image_names, y_val, val_wnids, val_label_names = load_images ('tiny-imagenet-200/val', val_wnid_labels, uniq_wnids, 'Validation')
+    x_train, train_image_names, y_train, train_wnids, train_label_names = load_images ('tiny-imagenet-200/train', train_wnid_labels, uniq_wnids, 'Training')
     if expanded == False:
         return (x_train, y_train), (x_val, y_val)
     else:
         return (x_train, y_train, train_image_names, train_wnids, train_label_names), \
-            (x_val, y_val, val_image_names, val_wnids, val_label_names)
+                (x_val, y_val, val_image_names, val_wnids, val_label_names)
 
 if __name__ == '__main__':
     (x_train, y_train, train_image_names, train_wnids, train_label_names), \
