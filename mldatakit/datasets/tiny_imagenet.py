@@ -145,7 +145,7 @@ def load_images (folder, wnid_labels, uniq_wnids, train_val):
     print ('Done')
     return images, image_names, labels, wnids, label_names
 
-def h5_creator (filename, images, image_names, labels, wnids, label_names ):
+def h5_creator (filename, x, y, image_names=np.array([]), wnids=np.array([]), label_names=np.array([]) ):
     """Creates a H5 file and datasets with all the arguments.
     # Arguments
         filename: name of the h5 file 
@@ -157,8 +157,8 @@ def h5_creator (filename, images, image_names, labels, wnids, label_names ):
     """
     print ('Creating {} ... '.format(filename), end='', flush=True)
     with h5py.File(filename, 'w') as hf:
-        hf.create_dataset('x', compression="gzip", data=images)
-        hf.create_dataset('y', compression="gzip", data=labels)
+        hf.create_dataset('x', compression="gzip", data=x)
+        hf.create_dataset('y', compression="gzip", data=y)
         hf.create_dataset('image_names', compression="gzip", data=image_names)
         hf.create_dataset('label_names', compression="gzip", data=label_names)
         hf.create_dataset('wnids', compression="gzip", data=wnids)
@@ -169,9 +169,11 @@ def load_data(expanded=False):
     """Downloads the data loads all the images and the labels
     # Returns
         Tuple of Numpy arrays
-        if expanded is false: (x_train, y_train, train_image_names, train_wnids, train_label_names),
+        if expanded is True: (x_train, y_train, train_image_names, train_wnids, train_label_names),
                 (x_val, y_val, val_image_names, val_wnids, val_label_names)
-        if expanded is true: (x_train, y_train), (x_val, y_val)
+        if expanded is False: (x_train, y_train), (x_val, y_val)
+    # Arguments
+        expanded: Boolean, where to load expanded entities
     """ 
     download_data()
     train_wnid_labels, val_wnid_labels, uniq_wnids = load_labels()
@@ -187,5 +189,5 @@ def load_data(expanded=False):
 if __name__ == '__main__':
     (x_train, y_train, train_image_names, train_wnids, train_label_names), \
             (x_val, y_val, val_image_names, val_wnids, val_label_names) = load_data(expanded=True)  
-    h5_creator ('val.h5', val_images, val_image_names, val_labels, val_wnids, val_label_names)
-    h5_creator ('train.h5', train_images, train_image_names, train_labels, train_wnids, train_label_names)
+    h5_creator ('val.h5', x_val, y_val, val_image_names, val_wnids, val_label_names)
+    h5_creator ('train.h5', x_train, y_train, train_image_names, train_wnids, train_label_names)

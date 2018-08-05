@@ -98,18 +98,18 @@ def load_images(folder, splitid, imagelabels, train_test_val):
     print ('Done')
     return images, image_names, labels
 
-def h5_creator (filename, images, image_names, labels ):
+def h5_creator (filename, x, y, image_names=np.array([])):
     """Creates a H5 file and datasets with all the arguments.
     # Arguments
-        filename: name of the h5 file 
+        filename: Name of the h5 file 
         images: A numpy array of the images
         image_names: A numpy array of the image names
         labels: A numpy array of the labels
     """
     print ('Creating {} ... '.format(filename), end='', flush=True)
     with h5py.File(filename, 'w') as hf:
-        hf.create_dataset('x', compression="gzip", data=images)
-        hf.create_dataset('y', compression="gzip", data=labels)
+        hf.create_dataset('x', compression="gzip", data=x)
+        hf.create_dataset('y', compression="gzip", data=y)
         hf.create_dataset('image_names', compression="gzip", data=image_names)
     hf.close()
     print ('Done')
@@ -118,9 +118,11 @@ def load_data(expanded=False):
     """Downloads the data loads all the images and the labels
     # Returns
         Tuple of Numpy arrays
-        if expanded is false: (x_train, y_train, train_image_names),
+        if expanded is true: (x_train, y_train, train_image_names),
                 (x_val, y_val, val_image_names), (x_test, y_test, test_image_names)
-        if expanded is true: (x_train, y_train), (x_val, y_val), (x_test, y_test)
+        if expanded is false: (x_train, y_train), (x_val, y_val), (x_test, y_test)
+    # Arguments
+        expanded: Boolean, where to load expanded entities
     """ 
     download_data()
     setid = scipy.io.loadmat('setid.mat')
@@ -142,6 +144,6 @@ def load_data(expanded=False):
 if __name__ == '__main__':
     (x_train, y_train, train_image_names), (x_val, y_val, val_image_names), \
             (x_test, y_test, test_image_names) = load_data(expanded=True)
-    h5_creator ('val.h5', x_val, val_image_names, y_val)
-    h5_creator ('train.h5', x_train, train_image_names, y_train)
-    h5_creator ('test.h5', x_test, test_image_names, y_test)
+    h5_creator ('train.h5', x=x_train, y=y_train, image_names=train_image_names)
+    h5_creator ('val.h5', x=x_val, y=y_val, image_names=val_image_names)
+    h5_creator ('test.h5', x=x_test, y=y_test, image_names=test_image_names)

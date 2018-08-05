@@ -7,6 +7,7 @@ from mldatakit.datasets import flowers102
 
 (x_train, y_train, train_image_names), (x_val, y_val, val_image_names), \
         (x_test, y_test, test_image_names) = flowers102.load_data(expanded=True)
-flowers102.h5_creator ('val.h5', x_val, val_image_names, y_val)
-flowers102.h5_creator ('train.h5', x_train, train_image_names, y_train)
-flowers102.h5_creator ('test.h5', x_test, test_image_names, y_test)
+
+flowers102.h5_creator ('train.h5', x=x_train, y=y_train, image_names=train_image_names)
+flowers102.h5_creator ('val.h5', x=x_val, y=y_val, image_names=val_image_names)
+flowers102.h5_creator ('test.h5', x=x_test, y=y_test, image_names=test_image_names)
