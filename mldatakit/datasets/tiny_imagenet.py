@@ -186,8 +186,16 @@ def load_data(expanded=False):
         return (x_train, y_train, train_image_names, train_wnids, train_label_names), \
                 (x_val, y_val, val_image_names, val_wnids, val_label_names)
 
+def create_h5(expanded=True):
+    if expanded == False:
+        (x_train, y_train), (x_val, y_val) = load_data(expanded=False)  
+        h5_creator ('val.h5', x_val, y_val)
+        h5_creator ('train.h5', x_train, y_train)
+    else:
+        (x_train, y_train, train_image_names, train_wnids, train_label_names), \
+                (x_val, y_val, val_image_names, val_wnids, val_label_names) = load_data(expanded=True)  
+        h5_creator ('val.h5', x_val, y_val, val_image_names, val_wnids, val_label_names)
+        h5_creator ('train.h5', x_train, y_train, train_image_names, train_wnids, train_label_names)
+
 if __name__ == '__main__':
-    (x_train, y_train, train_image_names, train_wnids, train_label_names), \
-            (x_val, y_val, val_image_names, val_wnids, val_label_names) = load_data(expanded=True)  
-    h5_creator ('val.h5', x_val, y_val, val_image_names, val_wnids, val_label_names)
-    h5_creator ('train.h5', x_train, y_train, train_image_names, train_wnids, train_label_names)
+    create_h5()

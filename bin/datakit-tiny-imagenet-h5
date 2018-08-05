@@ -5,10 +5,4 @@ Invoke the script to call tiny_imagenet converter
 
 from mldatakit.datasets import tiny_imagenet
 
-(x_train, y_train, train_image_names, train_wnids, train_label_names), \
-        (x_val, y_val, val_image_names, val_wnids, val_label_names) = tiny_imagenet.load_data(expanded=True)  
-
-tiny_imagenet.h5_creator ('train.h5', x=x_train, y=y_train, image_names=train_image_names,\
-		wnids=train_wnids, label_names=train_label_names)
-tiny_imagenet.h5_creator ('val.h5', x=x_val, y=y_val, image_names=val_image_names, \
-		wnids=val_wnids, label_names=val_label_names)
+tiny_imagenet.create_h5(expanded=True)
