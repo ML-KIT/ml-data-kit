@@ -141,7 +141,7 @@ def load_data(expanded=False):
 
 if __name__ == '__main__':
     (x_train, y_train, train_image_names), (x_val, y_val, val_image_names), \
-            (x_test, y_test, test_image_names) = load_data()
+            (x_test, y_test, test_image_names) = load_data(expanded=True)
     h5_creator ('val.h5', x_val, val_image_names, y_val)
     h5_creator ('train.h5', x_train, train_image_names, y_train)
     h5_creator ('test.h5', x_test, test_image_names, y_test)
